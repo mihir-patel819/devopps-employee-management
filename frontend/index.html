@@ -1,0 +1,166 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Employee Management</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f1f5f9;
+    margin: 0;
+    color: #1e293b;
+}
+header {
+    background: #172554;
+    color: white;
+    padding: 20px 40px;
+}
+.container {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 25px;
+    background: white;
+    border-radius: 12px;
+}
+.stats {
+    display: flex;
+    gap: 20px;
+}
+.card {
+    background: #eff6ff;
+    padding: 20px;
+    border-radius: 10px;
+    flex: 1;
+}
+input {
+    padding: 11px;
+    margin: 5px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+}
+button {
+    background: #2563eb;
+    color: white;
+    padding: 11px 18px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 25px;
+}
+th, td {
+    padding: 14px;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
+}
+.delete { background: #dc2626; }
+</style>
+</head>
+
+<body>
+<header>
+    <h2>Employee Management System</h2>
+    <p>Company Administration Dashboard</p>
+</header>
+
+<div class="container">
+    <h2>Dashboard</h2>
+
+    <div class="stats">
+        <div class="card">
+            <h3>Total Employees</h3>
+            <h1 id="total">0</h1>
+        </div>
+        <div class="card">
+            <h3>Application Status</h3>
+            <h1 style="color:green">Online</h1>
+        </div>
+    </div>
+
+    <h2>Add Employee</h2>
+    <form id="employeeForm">
+        <input id="name" placeholder="Name" required>
+        <input id="email" type="email" placeholder="Email" required>
+        <input id="department" placeholder="Department" required>
+        <button type="submit">Add Employee</button>
+    </form>
+
+    <h2>Employee Directory</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Department</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="employeeList"></tbody>
+    </table>
+</div>
+
+<script>
+async function loadEmployees() {
+    const response = await fetch('/api/employees');
+    const employees = await response.json();
+
+    document.getElementById('total').textContent = employees.length;
+
+    document.getElementById('employeeList').innerHTML =
+        employees.map(emp => `
+            <tr>
+                <td>${emp.id}</td>
+                <td>${emp.name}</td>
+                <td>${emp.email}</td>
+                <td>${emp.department}</td>
+                <td>
+                    <button class="delete"
+                        onclick="deleteEmployee(${emp.id})">
+                        Delete
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+}
+
+document.getElementById('employeeForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const employee = {
+        name: document.getElementById('name').value,
+        email: document.getElementById('email').value,
+        department: document.getElementById('department').value
+    };
+
+    const response = await fetch('/api/employees', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(employee)
+    });
+
+    if (response.ok) {
+        e.target.reset();
+        loadEmployees();
+    } else {
+        alert('Unable to add employee');
+    }
+});
+
+async function deleteEmployee(id) {
+    if (!confirm('Delete this employee?')) return;
+
+    await fetch(`/api/employees/${id}`, {method: 'DELETE'});
+    loadEmployees();
+}
+
+loadEmployees();
+</script>
+</body>
+</html>

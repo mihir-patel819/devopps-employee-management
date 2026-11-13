@@ -59,3 +59,30 @@ if __name__ == "__main__":
 # Practicing Git: my first code change
 # this is a test change to see if I can commit and push changes to the repository.
 # some more changes to test the git commit and push functionality.
+
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    data = request.get_json()
+
+    email = data.get('email')
+    password = data.get('password')
+
+    cursor = mysql.connection.cursor()
+
+    cursor.execute(
+        "SELECT * FROM employees WHERE email = %s",
+        (email,)
+    )
+
+    employee = cursor.fetchone()
+    cursor.close()
+
+    if employee:
+        return jsonify({
+            "message": "Employee found. Login authentication is not configured yet."
+        }), 200
+
+    return jsonify({
+        "message": "Employee not found"
+    }), 401
